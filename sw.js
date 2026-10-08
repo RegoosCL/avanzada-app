@@ -1,5 +1,5 @@
 // Guarda la app en el teléfono para que abra rápido aunque haya mala señal.
-const CACHE = "avanzada-v5";
+const CACHE = "avanzada-v6";
 const ARCHIVOS = ["./", "./index.html", "./config.js", "./manifest.json", "./icon-192.png", "./icon-512.png", "./icon-512-maskable.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", (e) => {

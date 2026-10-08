@@ -234,7 +234,9 @@
   function apiLista() { return API && API.indexOf("http") === 0; }
 
   /* ───── Pestañas ───── */
+  var pestana = "agregar";
   function irA(cual) {
+    pestana = cual;
     var buscar = cual === "buscar";
     document.body.classList.remove("sin-clave");
     $("tabClave").classList.remove("on");
@@ -294,8 +296,35 @@
   }
 
   /* ───── Clave del equipo ───── */
-  function pedirClave(msg) {
-    guardar(CLAVE_EQUIPO, "");
+  // La clave dura 8 horas en el teléfono; después se vuelve a pedir.
+  var HORAS_CLAVE = 8;
+  var CLAVE_HASTA = "avanzada_clave_hasta";
+  var CLAVE_HUELLA = "avanzada_clave_huella"; // para aceptar la clave sin señal (no guarda la clave)
+
+  function claveVigente() { return !!leer(CLAVE_EQUIPO, "") && Date.now() < Number(leer(CLAVE_HASTA, 0)); }
+  // Devuelve true si se puede seguir; si la clave venció, muestra la pantalla de clave.
+  function revisarClave() {
+    if (!apiLista() || claveVigente()) return true;
+    pedirClave(leer(CLAVE_EQUIPO, "") ? "Pasaron " + HORAS_CLAVE + " horas. Ingresa la clave de nuevo." : "");
+    return false;
+  }
+  function huella(c) {
+    if (!(window.crypto && crypto.subtle && window.TextEncoder)) return Promise.resolve("");
+    return crypto.subtle.digest("SHA-256", new TextEncoder().encode("avanzada:" + c)).then(function (b) {
+      return Array.prototype.map.call(new Uint8Array(b), function (x) { return ("0" + x.toString(16)).slice(-2); }).join("");
+    }).catch(function () { return ""; });
+  }
+  function aceptarClave(c) {
+    guardar(CLAVE_EQUIPO, c);
+    guardar(CLAVE_HASTA, Date.now() + HORAS_CLAVE * 3600 * 1000);
+    $("clave").value = ""; $("errorClave").textContent = "";
+    irA(pestana); vaciarCola();
+    return huella(c).then(function (h) { if (h) guardar(CLAVE_HUELLA, h); });
+  }
+
+  function pedirClave(msg, incorrecta) {
+    guardar(CLAVE_EQUIPO, ""); guardar(CLAVE_HASTA, 0);
+    if (incorrecta) guardar(CLAVE_HUELLA, ""); // la clave cambió en la hoja: no aceptarla sin señal
     document.body.classList.add("sin-clave");
     $("tabAgregar").classList.remove("on"); $("tabBuscar").classList.remove("on");
     $("tabClave").classList.add("on");
@@ -309,16 +338,19 @@
     $("btnClave").disabled = true; $("btnClaveTxt").textContent = "Revisando…";
     api({ accion: "verificar" }, c).then(function (j) {
       if (!j || !j.ok) throw new Error((j && j.error) || "No se pudo verificar");
-      guardar(CLAVE_EQUIPO, c); $("clave").value = ""; $("errorClave").textContent = "";
-      irA("agregar"); vaciarCola();
+      return aceptarClave(c);
     }).catch(function (e) {
-      $("errorClave").textContent =
-        e.message === "clave" ? "Clave incorrecta." :
-        e.message === "sin-config" ? "Falta configurar el link de la hoja (config.js)." :
-        navigator.onLine === false ? "Sin señal. Intenta de nuevo cuando tengas internet." :
-        "No se pudo conectar con la hoja.";
+      if (e.message === "clave") { $("errorClave").textContent = "Clave incorrecta."; guardar(CLAVE_HUELLA, ""); return; }
+      if (e.message === "sin-config") { $("errorClave").textContent = "Falta configurar el link de la hoja (config.js)."; return; }
+      // Sin señal: si es la misma clave que ya se aprobó antes en este teléfono, la aceptamos igual.
+      return huella(c).then(function (h) {
+        if (h && h === leer(CLAVE_HUELLA, "")) return aceptarClave(c);
+        $("errorClave").textContent = navigator.onLine === false ? "Sin señal. Intenta de nuevo cuando tengas internet." : "No se pudo conectar con la hoja.";
+      });
     }).then(function () { $("btnClave").disabled = false; $("btnClaveTxt").textContent = "Entrar"; });
   });
+  // Si la app quedó abierta en segundo plano, revisar al volver a ella.
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) revisarClave(); });
 
   /* ───── Agregar ───── */
   function enviar(dato) {
@@ -342,7 +374,7 @@
       var r = cola(); r.shift(); guardar(CLAVE_COLA, r); vaciando = false; vaciarCola();
     }).catch(function (e) {
       vaciando = false; mostrarAviso();
-      if (e && e.message === "clave") pedirClave("Ingresa la clave para enviar los registros pendientes.");
+      if (e && e.message === "clave") pedirClave("Ingresa la clave para enviar los registros pendientes.", true);
     });
   }
 
@@ -379,6 +411,7 @@
     else if (d.patente.length < 5 || d.patente.length > 6) err = "Revisa la patente (ej: ABCD12).";
     $("error").textContent = err;
     if (err) return;
+    if (!revisarClave()) return; // lo escrito queda en el formulario para después de poner la clave
 
     cargando(true);
     enviar(d).then(function () {
@@ -390,7 +423,7 @@
         // Lo dejamos en la cola: se envía solo apenas pongan la clave correcta.
         var cc = cola(); cc.push(d); guardar(CLAVE_COLA, cc); recordarEmpresa(d.empresa);
         $("form").reset(); mostrarAviso();
-        pedirClave("Ingresa la clave del equipo. El registro quedó guardado y se enviará después.");
+        pedirClave("Ingresa la clave del equipo. El registro quedó guardado y se enviará después.", true);
         return;
       }
       if (navigator.onLine === false || e instanceof TypeError) {
@@ -516,6 +549,7 @@
     $("errorBuscar").textContent = "";
     if (q.length < 3) { $("errorBuscar").textContent = "Escribe al menos 3 caracteres de la patente."; return; }
     if (!apiLista()) { $("errorBuscar").textContent = "Falta configurar el link de la hoja (config.js)."; return; }
+    if (!revisarClave()) return;
     $("qPatente").blur();
     cargandoBusqueda(true);
     $("resultados").innerHTML = "";
@@ -527,15 +561,14 @@
       })
       .catch(function (e) {
         cargandoBusqueda(false);
-        if (e && e.message === "clave") { pedirClave("Ingresa la clave del equipo para buscar."); return; }
+        if (e && e.message === "clave") { pedirClave("Ingresa la clave del equipo para buscar.", true); return; }
         $("errorBuscar").textContent = navigator.onLine === false ? "Sin señal. Intenta de nuevo cuando tengas internet." : "No se pudo conectar con la hoja.";
       });
   });
 
   window.addEventListener("online", vaciarCola);
   cargarEmpresas(); mostrarAviso();
-  if (apiLista() && !leer(CLAVE_EQUIPO, "")) pedirClave();
-  else vaciarCola();
+  if (revisarClave()) vaciarCola();
 
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
