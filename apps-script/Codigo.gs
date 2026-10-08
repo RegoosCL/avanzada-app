@@ -88,6 +88,9 @@ function agregar(d) {
     if (!hoja) throw new Error('No encuentro la pestaña "' + CONFIG.HOJA + '"');
 
     const fila = siguienteFila(hoja);
+    // Si la hoja se quedó sin filas abajo, le agregamos más (copian el formato de la de arriba).
+    const maxFilas = hoja.getMaxRows();
+    if (fila > maxFilas) hoja.insertRowsAfter(maxFilas, fila - maxFilas + 20);
 
     if (CONFIG.COPIAR_COLORES && fila > 1) {
       const cols = [CONFIG.COL_NOMBRE, CONFIG.COL_TELEFONO, CONFIG.COL_PATENTE, CONFIG.COL_EMPRESA, CONFIG.COL_FECHA]
