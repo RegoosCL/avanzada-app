@@ -18,14 +18,18 @@ const CONFIG = {
   COL_FECHA: '',        // opcional: pon una letra (ej. 'S') si quieren fecha y hora
   COPIAR_COLORES: true, // copia los colores (amarillo/verde) de la fila de arriba
 
-  // Los demás bloques de la hoja (para la búsqueda). La búsqueda además los
-  // detecta sola leyendo los títulos (NOMBRE / TELÉFONO / PATENTE / EMPRESA),
-  // así que si agregan un bloque nuevo a la derecha no hace falta tocar nada.
-  // Si en una fila el teléfono y la empresa están cambiados de lugar, se corrige solo.
+  // Los demás bloques de la hoja.
+  // - Para GUARDAR: si el bloque de arriba (L-R) llega al final de la hoja, el registro
+  //   se anota debajo del último nombre del primer bloque de esta lista que tenga espacio
+  //   (en este orden). Si ninguno tiene espacio, se agregan filas al final de la hoja.
+  // - Para BUSCAR: se revisan todos. Además se detectan solos leyendo los títulos
+  //   (NOMBRE / TELÉFONO / PATENTE / EMPRESA), así que un bloque nuevo a la derecha
+  //   no necesita tocar nada.
+  // Si en un bloque el teléfono y la empresa están cambiados de lugar, se corrige solo.
   OTROS_GRUPOS: [
-    { nombre: 'A',  telefono: 'B',  patente: 'D',  empresa: 'F'  },
     { nombre: 'U',  telefono: 'V',  patente: 'W',  empresa: 'Y'  },
-    { nombre: 'AB', telefono: 'AD', patente: 'AG', empresa: 'AI' }
+    { nombre: 'AB', telefono: 'AD', patente: 'AG', empresa: 'AI' },
+    { nombre: 'A',  telefono: 'B',  patente: 'D',  empresa: 'F'  }
   ],
 
   // Pestañas donde buscar. Deja [] para buscar en TODAS las pestañas.
@@ -87,28 +91,46 @@ function agregar(d) {
     const hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.HOJA);
     if (!hoja) throw new Error('No encuentro la pestaña "' + CONFIG.HOJA + '"');
 
-    const fila = siguienteFila(hoja);
-    // Si la hoja se quedó sin filas abajo, le agregamos más (copian el formato de la de arriba).
+    // Elegimos el primer bloque que tenga espacio debajo de su último nombre.
+    const principal = { nombre: CONFIG.COL_NOMBRE, telefono: CONFIG.COL_TELEFONO, patente: CONFIG.COL_PATENTE, empresa: CONFIG.COL_EMPRESA, fecha: CONFIG.COL_FECHA };
+    const bloques = [principal].concat(CONFIG.OTROS_GRUPOS || []);
     const maxFilas = hoja.getMaxRows();
-    if (fila > maxFilas) hoja.insertRowsAfter(maxFilas, fila - maxFilas + 20);
+    let b = null, fila = 0;
+    for (let i = 0; i < bloques.length && !b; i++) {
+      const f = siguienteFila(hoja, bloques[i].nombre);
+      if (f <= maxFilas) { b = bloques[i]; fila = f; }
+    }
+    if (!b) {
+      // Ningún bloque tiene espacio: agregamos filas al final (copian el formato de la de arriba).
+      b = principal; fila = siguienteFila(hoja, b.nombre);
+      hoja.insertRowsAfter(maxFilas, fila - maxFilas + 20);
+    }
+
+    // Si en la fila de arriba el teléfono está en la columna de empresa (y al revés),
+    // seguimos esa misma costumbre para que el bloque quede ordenado.
+    let colTel = b.telefono, colEmp = b.empresa;
+    if (fila > 1) {
+      const telArriba = hoja.getRange(fila - 1, colNum(colTel)).getDisplayValue();
+      const empArriba = hoja.getRange(fila - 1, colNum(colEmp)).getDisplayValue();
+      if (pareceTel(empArriba) && !pareceTel(telArriba)) { colTel = b.empresa; colEmp = b.telefono; }
+    }
 
     if (CONFIG.COPIAR_COLORES && fila > 1) {
-      const cols = [CONFIG.COL_NOMBRE, CONFIG.COL_TELEFONO, CONFIG.COL_PATENTE, CONFIG.COL_EMPRESA, CONFIG.COL_FECHA]
-        .filter(String).map(colNum);
+      const cols = [b.nombre, b.telefono, b.patente, b.empresa, b.fecha || ''].filter(String).map(colNum);
       const desde = Math.min.apply(null, cols), hasta = Math.max.apply(null, cols);
       hoja.getRange(fila - 1, desde, 1, hasta - desde + 1)
           .copyTo(hoja.getRange(fila, desde, 1, hasta - desde + 1), SpreadsheetApp.CopyPasteType.PASTE_FORMAT, false);
     }
 
-    escribir(hoja, fila, CONFIG.COL_NOMBRE, nombre);
-    escribir(hoja, fila, CONFIG.COL_TELEFONO, Number(telefono) || telefono);
-    escribir(hoja, fila, CONFIG.COL_PATENTE, patente);
-    escribir(hoja, fila, CONFIG.COL_EMPRESA, empresa);
-    if (CONFIG.COL_FECHA) escribir(hoja, fila, CONFIG.COL_FECHA, new Date());
+    escribir(hoja, fila, b.nombre, nombre);
+    escribir(hoja, fila, colTel, Number(telefono) || telefono);
+    escribir(hoja, fila, b.patente, patente);
+    escribir(hoja, fila, colEmp, empresa);
+    if (b.fecha) escribir(hoja, fila, b.fecha, new Date());
 
     SpreadsheetApp.flush();
     if (id) cache.put(id, String(fila), 21600); // 6 horas
-    return { ok: true, fila: fila };
+    return { ok: true, fila: fila, columna: b.nombre };
   } finally {
     lock.releaseLock();
   }
@@ -258,9 +280,9 @@ function adivinar(fila, c) {
 
 /* ───────────────────────── AYUDANTES ───────────────────────── */
 
-// Busca el último nombre escrito en la columna de nombres y devuelve la fila siguiente.
-function siguienteFila(hoja) {
-  const col = colNum(CONFIG.COL_NOMBRE);
+// Busca el último nombre escrito en esa columna de nombres y devuelve la fila siguiente.
+function siguienteFila(hoja, letra) {
+  const col = colNum(letra || CONFIG.COL_NOMBRE);
   const ultima = hoja.getLastRow();
   if (ultima < 1) return 1;
   const valores = hoja.getRange(1, col, ultima, 1).getValues();
