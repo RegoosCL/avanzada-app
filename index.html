@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Avanzada</title>
+<meta name="theme-color" content="#CC0000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Avanzada">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="config.js"></script>
+<style>
+  :root{
+    --rojo:#CC0000; --rojo-osc:#A30000; --tinta:#1A1A1A; --gris:#4A4A4A; --gris2:#6A6A6A;
+    --linea:#DAD6D2; --fondo:#F4F2F0; --blanco:#FFFFFF;
+    --display:'Barlow Condensed', 'Arial Narrow', sans-serif;
+    --texto:'Manrope', system-ui, -apple-system, sans-serif;
+    --tab-h:68px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--fondo);color:var(--tinta);font-family:var(--texto)}
+  body{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;padding-bottom:calc(var(--tab-h) + env(safe-area-inset-bottom))}
+  header{
+    background:var(--rojo);color:#fff;position:relative;overflow:hidden;
+    padding:calc(env(safe-area-inset-top) + 32px) 24px 72px 24px;
+  }
+  header .aro1{position:absolute;right:-60px;top:-40px;width:220px;height:220px;border-radius:50%;border:28px solid rgba(255,255,255,.08)}
+  header .aro2{position:absolute;right:30px;bottom:-70px;width:140px;height:140px;border-radius:50%;border:18px solid rgba(255,255,255,.06)}
+  .eyebrow{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;opacity:.92}
+  h1{margin:10px 0 0;font-family:var(--display);font-weight:800;font-size:64px;line-height:.9;letter-spacing:.01em;text-transform:uppercase}
+  .sub{margin-top:8px;font-size:15px;font-weight:500;opacity:.92}
+  main{flex:1;padding:0 16px;width:100%;max-width:480px;margin:0 auto}
+  .card{margin-top:-44px;background:#fff;border-radius:20px;padding:24px 20px;box-shadow:0 12px 32px rgba(0,0,0,.10);position:relative}
+  .card h2{margin:0 0 16px;font-family:var(--display);font-weight:700;font-size:24px;text-transform:uppercase;letter-spacing:.02em}
+  form{display:flex;flex-direction:column;gap:16px}
+  .campo{display:flex;flex-direction:column;gap:6px}
+  label{font-size:13px;font-weight:600;color:var(--gris)}
+  input.fld{height:50px;border:1.5px solid var(--linea);border-radius:12px;padding:0 14px;font-family:var(--texto);font-size:16px;color:var(--tinta);background:#fff;width:100%}
+  input.fld:focus{outline:none;border-color:var(--rojo);box-shadow:0 0 0 3px rgba(204,0,0,.15)}
+  .placa{display:flex;align-items:stretch;border:2px solid var(--tinta);border-radius:10px;overflow:hidden;height:58px;background:#fff}
+  .placa:focus-within{box-shadow:0 0 0 3px rgba(204,0,0,.18)}
+  .placa .pais{width:42px;background:var(--tinta);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:14px}
+  .placa input{flex:1;min-width:0;border:0;outline:0;text-align:center;font-family:var(--display);font-weight:700;font-size:30px;letter-spacing:.18em;text-transform:uppercase;color:var(--tinta);background:transparent}
+  .error{font-size:13px;color:#B00000;font-weight:600}
+  .error:empty{display:none}
+  button.prim{height:58px;border:0;border-radius:14px;background:var(--rojo);color:#fff;font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;width:100%}
+  button.prim:active{background:var(--rojo-osc)}
+  button.prim:disabled{opacity:.6}
+  button.sec{margin-top:8px;width:100%;height:52px;border:2px solid var(--rojo);border-radius:14px;background:#fff;color:var(--rojo);font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+  .hecho{display:none;flex-direction:column;align-items:center;gap:14px;text-align:center;padding-top:8px}
+  .hecho.on{display:flex}
+  .check{width:72px;height:72px;border-radius:50%;background:var(--rojo);display:flex;align-items:center;justify-content:center}
+  .check.pend{background:#8A6D00}
+  .hecho .titulo{font-family:var(--display);font-weight:800;font-size:30px;text-transform:uppercase}
+  .hecho .msg{font-size:14px;color:var(--gris)}
+  .resumen{width:100%;border-top:1px solid #ECE8E4;margin-top:6px;padding-top:14px;display:flex;flex-direction:column;gap:10px;text-align:left;font-size:14px}
+  .resumen div{display:flex;justify-content:space-between;gap:12px}
+  .resumen span:first-child{color:#5A5A5A}
+  .resumen span:last-child{font-weight:700;text-align:right;word-break:break-word}
+  .resumen .pat{font-family:var(--display);font-size:18px;letter-spacing:.12em}
+  .aviso{margin-top:12px;font-size:13px;color:#6B5500;background:#FFF6D6;border-radius:12px;padding:10px 12px;display:none}
+  .aviso.on{display:block}
+  .spin{width:20px;height:20px;border:3px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:g .8s linear infinite}
+  @keyframes g{to{transform:rotate(360deg)}}
+  .vista{display:none}
+  .vista.on{display:block}
+
+  /* ── Buscar ── */
+  .estado{margin:16px 4px 0;font-size:14px;color:var(--gris);text-align:center}
+  .estado:empty{display:none}
+  .alerta{margin-top:16px;background:#1A1A1A;color:#fff;border-radius:16px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start}
+  .alerta svg{flex:none;margin-top:2px}
+  .alerta b{display:block;font-family:var(--display);font-size:20px;text-transform:uppercase;letter-spacing:.03em}
+  .alerta span{font-size:13px;opacity:.85}
+  .seccion{margin:20px 4px 8px;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gris2)}
+  .res{background:#fff;border-radius:16px;padding:16px;margin-top:10px;box-shadow:0 4px 14px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:10px}
+  .res .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .res .pat{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:.14em;border:2px solid var(--tinta);border-radius:8px;padding:2px 10px;line-height:1.2}
+  .res .fila{font-size:12px;color:var(--gris2);text-align:right}
+  .res .nom{font-size:18px;font-weight:700;line-height:1.25}
+  .res .nom.distinto{color:var(--rojo)}
+  .res .emp{align-self:flex-start;font-size:13px;font-weight:600;background:#F1EEEB;border-radius:999px;padding:5px 12px}
+  .res a.tel{display:flex;align-items:center;gap:10px;height:48px;border-radius:12px;background:#FBEAEA;color:var(--rojo-osc);text-decoration:none;font-weight:700;font-size:17px;padding:0 14px;letter-spacing:.02em}
+  .res .sintel{font-size:14px;color:var(--gris2)}
+  .vacio{text-align:center;padding:28px 12px 8px;color:var(--gris)}
+  .vacio b{display:block;font-family:var(--display);font-size:24px;text-transform:uppercase;color:var(--tinta);margin-bottom:4px}
+
+  /* ── Barra inferior ── */
+  body.sin-clave nav.tabs{display:none}
+  nav.tabs{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #E6E2DE;display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:10}
+  nav.tabs button{flex:1;height:var(--tab-h);border:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-family:var(--texto);font-size:12px;font-weight:700;color:#7A7672;cursor:pointer}
+  nav.tabs button svg{stroke:#7A7672}
+  nav.tabs button[aria-selected="true"]{color:var(--rojo)}
+  nav.tabs button[aria-selected="true"] svg{stroke:var(--rojo)}
+  footer{padding:20px 24px 16px;text-align:center;font-size:12px;color:var(--gris2);letter-spacing:.04em}
+</style>
+</head>
+<body>
+<header>
+  <div class="aro1"></div><div class="aro2"></div>
+  <div class="eyebrow">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 17h14M6 17l1.5-5h9L18 17M7 17v2M17 17v2M8 9l1-3h6l1 3"/></svg>
+    Control vehicular
+  </div>
+  <h1>Avanzada</h1>
+  <div class="sub">Santander Arena</div>
+</header>
+
+<main>
+  <!-- ═════════ AGREGAR ═════════ -->
+  <div class="vista on" id="tabAgregar">
+    <section class="card">
+      <div id="vistaForm">
+        <h2>Registrar vehículo</h2>
+        <form id="form" novalidate>
+          <div class="campo">
+            <label for="nombre">Nombre completo</label>
+            <input id="nombre" class="fld" type="text" autocomplete="name" autocapitalize="words" placeholder="Ej: Juan Pérez">
+          </div>
+          <div class="campo">
+            <label for="telefono">Teléfono</label>
+            <input id="telefono" class="fld" type="tel" inputmode="numeric" autocomplete="tel" placeholder="9 1234 5678">
+          </div>
+          <div class="campo">
+            <label for="empresa">Empresa o área</label>
+            <input id="empresa" class="fld" type="text" autocapitalize="sentences" placeholder="Ej: Bsound, Productora, Reunión" list="empresas">
+            <datalist id="empresas"></datalist>
+          </div>
+          <div class="campo">
+            <label for="patente">Matrícula / Patente</label>
+            <div class="placa">
+              <div class="pais">CL</div>
+              <input id="patente" type="text" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="8" placeholder="ABCD12">
+            </div>
+          </div>
+          <div class="error" id="error" role="alert"></div>
+          <button class="prim" type="submit" id="btn">
+            <span id="btnTxt">Agregar a la PDA</span>
+            <span id="btnIco"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </button>
+        </form>
+      </div>
+
+      <div class="hecho" id="vistaHecho">
+        <div class="check" id="check">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+        </div>
+        <div class="titulo" id="hechoTitulo">¡Agregado a la PDA!</div>
+        <div class="msg" id="hechoMsg">Ya quedó anotado en la hoja «patentes».</div>
+        <div class="resumen">
+          <div><span>Nombre</span><span id="rNombre"></span></div>
+          <div><span>Teléfono</span><span id="rTel"></span></div>
+          <div><span>Empresa / área</span><span id="rEmp"></span></div>
+          <div><span>Patente</span><span id="rPat" class="pat"></span></div>
+        </div>
+        <button class="sec" type="button" id="nuevo">Nuevo registro</button>
+      </div>
+      <div class="aviso" id="aviso"></div>
+    </section>
+  </div>
+
+  <!-- ═════════ BUSCAR ═════════ -->
+  <div class="vista" id="tabBuscar">
+    <section class="card">
+      <h2>Buscar vehículo</h2>
+      <form id="formBuscar" novalidate>
+        <div class="campo">
+          <label for="qPatente">Patente</label>
+          <div class="placa">
+            <div class="pais">CL</div>
+            <input id="qPatente" type="text" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="8" placeholder="ABCD12" enterkeyhint="search">
+          </div>
+        </div>
+        <div class="error" id="errorBuscar" role="alert"></div>
+        <button class="prim" type="submit" id="btnBuscar">
+          <span id="btnBuscarTxt">Buscar</span>
+          <span id="btnBuscarIco"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></span>
+        </button>
+      </form>
+    </section>
+    <div id="resultados" aria-live="polite"></div>
+  </div>
+
+  <!-- ═════════ CLAVE ═════════ -->
+  <div class="vista" id="tabClave">
+    <section class="card">
+      <h2>Clave del equipo</h2>
+      <form id="formClave" novalidate>
+        <div class="campo">
+          <label for="clave">Pídesela a tu jefe de equipo. Se pide una sola vez.</label>
+          <input id="clave" class="fld" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go">
+        </div>
+        <div class="error" id="errorClave" role="alert"></div>
+        <button class="prim" type="submit" id="btnClave"><span id="btnClaveTxt">Entrar</span></button>
+      </form>
+    </section>
+  </div>
+
+  <footer>Equipo Avanzada · Santander Arena</footer>
+</main>
+
+<nav class="tabs" role="tablist" aria-label="Secciones">
+  <button type="button" role="tab" id="tbAgregar" aria-selected="true" aria-controls="tabAgregar">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+    Agregar
+  </button>
+  <button type="button" role="tab" id="tbBuscar" aria-selected="false" aria-controls="tabBuscar">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+    Buscar
+  </button>
+</nav>
+
+<script>
+(function () {
+  var API = (window.AVANZADA_CONFIG || {}).API_URL || "";
+  var CLAVE_COLA = "avanzada_pendientes";
+  var CLAVE_EMP = "avanzada_empresas";
+  var CLAVE_EQUIPO = "avanzada_clave";
+  var $ = function (id) { return document.getElementById(id); };
+  var ICO_FLECHA = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+  var ICO_LUPA = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>';
+  var SPIN = '<span class="spin"></span>';
+
+  function leer(k, def) { try { return JSON.parse(localStorage.getItem(k)) || def; } catch (e) { return def; } }
+  function guardar(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function apiLista() { return API && API.indexOf("http") === 0; }
+
+  /* ───── Pestañas ───── */
+  function irA(cual) {
+    var buscar = cual === "buscar";
+    document.body.classList.remove("sin-clave");
+    $("tabClave").classList.remove("on");
+    $("tabAgregar").classList.toggle("on", !buscar);
+    $("tabBuscar").classList.toggle("on", buscar);
+    $("tbAgregar").setAttribute("aria-selected", String(!buscar));
+    $("tbBuscar").setAttribute("aria-selected", String(buscar));
+    window.scrollTo(0, 0);
+  }
+  $("tbAgregar").addEventListener("click", function () { irA("agregar"); });
+  $("tbBuscar").addEventListener("click", function () { irA("buscar"); });
+
+  /* ───── Utilidades ───── */
+  function cargarEmpresas() {
+    var dl = $("empresas"); dl.innerHTML = "";
+    leer(CLAVE_EMP, []).forEach(function (e) { var o = document.createElement("option"); o.value = e; dl.appendChild(o); });
+  }
+  function recordarEmpresa(e) {
+    var l = leer(CLAVE_EMP, []).filter(function (x) { return x.toLowerCase() !== e.toLowerCase(); });
+    l.unshift(e); guardar(CLAVE_EMP, l.slice(0, 30)); cargarEmpresas();
+  }
+  function limpiarPatente(v) { return (v || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); }
+  function limpiarTel(v) {
+    var d = (v || "").replace(/\D/g, "");
+    if (d.indexOf("56") === 0 && d.length === 11) d = d.slice(2);
+    return d;
+  }
+  function soloPatente(input) {
+    input.addEventListener("input", function () {
+      var p = this.selectionStart, antes = this.value;
+      this.value = limpiarPatente(this.value);
+      if (antes.length === this.value.length) this.setSelectionRange(p, p);
+    });
+  }
+  soloPatente($("patente")); soloPatente($("qPatente"));
+
+  function el(tag, cls, txt) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (txt != null) e.textContent = txt;
+    return e;
+  }
+
+  /* ───── Conexión con la hoja ───── */
+  // Todo va por POST (text/plain evita el bloqueo CORS de Apps Script) y lleva la clave del equipo.
+  function api(datos, clave) {
+    if (!apiLista()) return Promise.reject(new Error("sin-config"));
+    datos.clave = clave != null ? clave : leer(CLAVE_EQUIPO, "");
+    return fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(datos)
+    }).then(function (r) { return r.json(); }).then(function (j) {
+      if (j && j.clave) throw new Error("clave");
+      return j;
+    });
+  }
+
+  /* ───── Clave del equipo ───── */
+  function pedirClave(msg) {
+    guardar(CLAVE_EQUIPO, "");
+    document.body.classList.add("sin-clave");
+    $("tabAgregar").classList.remove("on"); $("tabBuscar").classList.remove("on");
+    $("tabClave").classList.add("on");
+    $("errorClave").textContent = msg || "";
+    window.scrollTo(0, 0);
+  }
+  $("formClave").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var c = $("clave").value.trim();
+    if (!c) { $("errorClave").textContent = "Escribe la clave."; return; }
+    $("btnClave").disabled = true; $("btnClaveTxt").textContent = "Revisando…";
+    api({ accion: "verificar" }, c).then(function (j) {
+      if (!j || !j.ok) throw new Error((j && j.error) || "No se pudo verificar");
+      guardar(CLAVE_EQUIPO, c); $("clave").value = ""; $("errorClave").textContent = "";
+      irA("agregar"); vaciarCola();
+    }).catch(function (e) {
+      $("errorClave").textContent =
+        e.message === "clave" ? "Clave incorrecta." :
+        e.message === "sin-config" ? "Falta configurar el link de la hoja (config.js)." :
+        navigator.onLine === false ? "Sin señal. Intenta de nuevo cuando tengas internet." :
+        "No se pudo conectar con la hoja.";
+    }).then(function () { $("btnClave").disabled = false; $("btnClaveTxt").textContent = "Entrar"; });
+  });
+
+  /* ───── Agregar ───── */
+  function enviar(dato) {
+    return api(Object.assign({ accion: "agregar" }, dato)).then(function (j) {
+      if (!j || !j.ok) throw new Error((j && j.error) || "Error en la hoja");
+      return j;
+    });
+  }
+
+  function cola() { return leer(CLAVE_COLA, []); }
+  function mostrarAviso() {
+    var n = cola().length, a = $("aviso");
+    if (n) { a.textContent = n === 1 ? "Hay 1 registro esperando señal para enviarse." : "Hay " + n + " registros esperando señal para enviarse."; a.classList.add("on"); }
+    else a.classList.remove("on");
+  }
+  var vaciando = false;
+  function vaciarCola() {
+    if (vaciando) return; var c = cola(); if (!c.length) { mostrarAviso(); return; }
+    vaciando = true;
+    enviar(c[0]).then(function () {
+      var r = cola(); r.shift(); guardar(CLAVE_COLA, r); vaciando = false; vaciarCola();
+    }).catch(function (e) {
+      vaciando = false; mostrarAviso();
+      if (e && e.message === "clave") pedirClave("Ingresa la clave para enviar los registros pendientes.");
+    });
+  }
+
+  function cargando(si) {
+    $("btn").disabled = si;
+    $("btnTxt").textContent = si ? "Enviando…" : "Agregar a la PDA";
+    $("btnIco").innerHTML = si ? SPIN : ICO_FLECHA;
+  }
+
+  function mostrarHecho(d, pendiente) {
+    $("rNombre").textContent = d.nombre; $("rTel").textContent = d.telefono;
+    $("rEmp").textContent = d.empresa; $("rPat").textContent = d.patente;
+    $("check").classList.toggle("pend", !!pendiente);
+    $("hechoTitulo").textContent = pendiente ? "Guardado" : "¡Agregado a la PDA!";
+    $("hechoMsg").textContent = pendiente ? "No hay señal. Se enviará solo apenas vuelva internet." : "Ya quedó anotado en la hoja «patentes».";
+    $("vistaForm").style.display = "none"; $("vistaHecho").classList.add("on");
+    window.scrollTo(0, 0);
+  }
+
+  $("form").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var d = {
+      nombre: $("nombre").value.trim().replace(/\s+/g, " "),
+      telefono: limpiarTel($("telefono").value),
+      empresa: $("empresa").value.trim().replace(/\s+/g, " "),
+      patente: limpiarPatente($("patente").value),
+      enviado: new Date().toISOString(),
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
+    };
+    var err = "";
+    if (!d.nombre) err = "Falta el nombre.";
+    else if (d.telefono.length !== 9) err = "El teléfono debe tener 9 dígitos (ej: 912345678).";
+    else if (!d.empresa) err = "Falta la empresa o área.";
+    else if (d.patente.length < 5 || d.patente.length > 6) err = "Revisa la patente (ej: ABCD12).";
+    $("error").textContent = err;
+    if (err) return;
+
+    cargando(true);
+    enviar(d).then(function () {
+      cargando(false); recordarEmpresa(d.empresa); mostrarHecho(d, false); vaciarCola();
+    }).catch(function (e) {
+      cargando(false);
+      if (e && e.message === "sin-config") { $("error").textContent = "Falta configurar el link de la hoja (config.js)."; return; }
+      if (e && e.message === "clave") {
+        // Lo dejamos en la cola: se envía solo apenas pongan la clave correcta.
+        var cc = cola(); cc.push(d); guardar(CLAVE_COLA, cc); recordarEmpresa(d.empresa);
+        $("form").reset(); mostrarAviso();
+        pedirClave("Ingresa la clave del equipo. El registro quedó guardado y se enviará después.");
+        return;
+      }
+      if (navigator.onLine === false || e instanceof TypeError) {
+        var c = cola(); c.push(d); guardar(CLAVE_COLA, c); recordarEmpresa(d.empresa); mostrarHecho(d, true); mostrarAviso();
+      } else {
+        $("error").textContent = "No se pudo guardar: " + e.message;
+      }
+    });
+  });
+
+  $("nuevo").addEventListener("click", function () {
+    $("form").reset(); $("error").textContent = "";
+    $("vistaHecho").classList.remove("on"); $("vistaForm").style.display = "";
+    $("nombre").focus();
+  });
+
+  /* ───── Buscar ───── */
+  function cargandoBusqueda(si) {
+    $("btnBuscar").disabled = si;
+    $("btnBuscarTxt").textContent = si ? "Buscando…" : "Buscar";
+    $("btnBuscarIco").innerHTML = si ? SPIN : ICO_LUPA;
+  }
+
+  function telBonito(t) {
+    var d = String(t || "").replace(/\D/g, "");
+    if (d.length === 11 && d.indexOf("56") === 0) d = d.slice(2);
+    if (d.length === 9) return d.slice(0, 1) + " " + d.slice(1, 5) + " " + d.slice(5);
+    return t;
+  }
+  function telLink(t) {
+    var d = String(t || "").replace(/\D/g, "");
+    if (d.length === 9) return "tel:+56" + d;
+    if (d.length === 11 && d.indexOf("56") === 0) return "tel:+" + d;
+    return "tel:" + d;
+  }
+  function clave(s) { return String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim(); }
+
+  function tarjeta(r, nombrePrincipal) {
+    var c = el("article", "res");
+    var top = el("div", "top");
+    top.appendChild(el("div", "pat", r.patente));
+    top.appendChild(el("div", "fila", "Fila " + r.fila + (r.hoja && r.hoja !== "patentes" ? " · " + r.hoja : "")));
+    c.appendChild(top);
+
+    var n = el("div", "nom", r.nombre || "Sin nombre");
+    if (nombrePrincipal && r.nombre && clave(r.nombre) !== nombrePrincipal) n.classList.add("distinto");
+    c.appendChild(n);
+
+    if (r.empresa) c.appendChild(el("div", "emp", r.empresa));
+
+    var tels = [r.telefono, r.telefono2].filter(function (t) { return String(t || "").replace(/\D/g, "").length >= 6; });
+    tels.forEach(function (t) {
+      var digitos = String(t).replace(/\D/g, "");
+      var a = el("a", "tel");
+      a.href = telLink(t);
+      a.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>';
+      a.appendChild(document.createTextNode(telBonito(t)));
+      a.setAttribute("aria-label", "Llamar a " + (r.nombre || "este número") + ", " + telBonito(t));
+      c.appendChild(a);
+      if (digitos.length !== 9 && !(digitos.length === 11 && digitos.indexOf("56") === 0)) {
+        c.appendChild(el("div", "sintel", "Ojo: este número parece incompleto."));
+      }
+    });
+    if (!tels.length) c.appendChild(el("div", "sintel", "Sin teléfono registrado"));
+    return c;
+  }
+
+  function pintarResultados(j, q) {
+    var box = $("resultados"); box.innerHTML = "";
+    var lista = (j.resultados || []);
+    var exactas = lista.filter(function (r) { return r.exacta; });
+    var parecidas = lista.filter(function (r) { return !r.exacta; });
+
+    if (!lista.length) {
+      var v = el("div", "vacio");
+      v.appendChild(el("b", null, "No está en la PDA"));
+      v.appendChild(document.createTextNode("No hay ninguna patente " + q + " en la hoja."));
+      box.appendChild(v);
+      return;
+    }
+
+    if (exactas.length) {
+      var nombres = {}, tels = {};
+      exactas.forEach(function (r) {
+        if (r.nombre) nombres[clave(r.nombre)] = 1;
+        var d = String(r.telefono || "").replace(/\D/g, ""); if (d) tels[d] = 1;
+      });
+      var nN = Object.keys(nombres).length, nT = Object.keys(tels).length;
+
+      if (exactas.length > 1) {
+        var al = el("div", "alerta");
+        al.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l10 18H2z"/><path d="M12 10v4M12 17.5v.5"/></svg>';
+        var t = el("div");
+        t.appendChild(el("b", null, "Aparece " + exactas.length + " veces"));
+        var partes = [];
+        partes.push(nN === 1 ? "mismo nombre" : nN + " nombres distintos");
+        partes.push(nT <= 1 ? (nT ? "mismo teléfono" : "sin teléfono") : nT + " teléfonos distintos");
+        t.appendChild(el("span", null, partes.join(" · ")));
+        al.appendChild(t);
+        box.appendChild(al);
+      }
+
+      box.appendChild(el("div", "seccion", exactas.length === 1 ? "Resultado" : "Todos los registros (más nuevo primero)"));
+      var principal = exactas[0].nombre ? clave(exactas[0].nombre) : "";
+      exactas.forEach(function (r) { box.appendChild(tarjeta(r, nN > 1 ? principal : "")); });
+    } else {
+      var v2 = el("div", "vacio");
+      v2.appendChild(el("b", null, "No hay coincidencia exacta"));
+      v2.appendChild(document.createTextNode("Pero hay patentes parecidas:"));
+      box.appendChild(v2);
+    }
+
+    if (parecidas.length) {
+      box.appendChild(el("div", "seccion", "Patentes parecidas"));
+      parecidas.forEach(function (r) { box.appendChild(tarjeta(r, "")); });
+    }
+    if (j.total > lista.length) box.appendChild(el("div", "estado", "Mostrando " + lista.length + " de " + j.total + ". Escribe la patente completa para afinar."));
+  }
+
+  $("formBuscar").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var q = limpiarPatente($("qPatente").value);
+    $("errorBuscar").textContent = "";
+    if (q.length < 3) { $("errorBuscar").textContent = "Escribe al menos 3 caracteres de la patente."; return; }
+    if (!apiLista()) { $("errorBuscar").textContent = "Falta configurar el link de la hoja (config.js)."; return; }
+    $("qPatente").blur();
+    cargandoBusqueda(true);
+    $("resultados").innerHTML = "";
+    api({ accion: "buscar", patente: q })
+      .then(function (j) {
+        cargandoBusqueda(false);
+        if (!j || !j.ok) { $("errorBuscar").textContent = (j && j.error) || "No se pudo buscar."; return; }
+        pintarResultados(j, q);
+      })
+      .catch(function (e) {
+        cargandoBusqueda(false);
+        if (e && e.message === "clave") { pedirClave("Ingresa la clave del equipo para buscar."); return; }
+        $("errorBuscar").textContent = navigator.onLine === false ? "Sin señal. Intenta de nuevo cuando tengas internet." : "No se pudo conectar con la hoja.";
+      });
+  });
+
+  window.addEventListener("online", vaciarCola);
+  cargarEmpresas(); mostrarAviso();
+  if (apiLista() && !leer(CLAVE_EQUIPO, "")) pedirClave();
+  else vaciarCola();
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+  }
+})();
+</script>
+</body>
+</html>
